@@ -9,21 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const ticketsSection = document.getElementById('tickets-section');
 
     const coinBalance = document.getElementById('coin-balance');
-    const availableTickets = document.getElementById('available-tickets');
     const userTickets = document.getElementById('user-tickets');
+    const ticketGrid = document.getElementById('ticket-grid');
+    const ticketPriceDisplay = document.getElementById('ticket-price-display');
 
-    const buyTicketBtn = document.getElementById('buy-ticket-btn');
     const completeTaskBtns = document.querySelectorAll('.complete-task-btn');
 
     // --- Constants ---
     const TICKET_PRICE = 50;
+    const TOTAL_TICKETS = 100;
 
     // --- Application State ---
     let state = {
         coins: 0,
-        tickets: 100,
         myTickets: [],
-        completedTasks: [], // Array of task indices
+        completedTasks: [],
+        tickets: [], // Array of ticket objects { id, isSold }
     };
 
     // --- State Management ---
@@ -39,20 +40,35 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('ticketAppState', JSON.stringify(state));
     }
 
+    // --- Helper Functions ---
+    function formatTicketId(id) {
+        return id.toString().padStart(3, '0');
+    }
+
     // --- UI Update Functions ---
     function updateUI() {
         // Update profile
         coinBalance.textContent = state.coins;
         userTickets.innerHTML = '';
-        state.myTickets.forEach(ticket => {
+        state.myTickets.sort((a, b) => a.id - b.id).forEach(ticket => {
             const li = document.createElement('li');
-            li.textContent = `Ticket #${ticket.id}`;
+            li.textContent = `Ticket #${formatTicketId(ticket.id)}`;
             userTickets.appendChild(li);
         });
 
         // Update tickets section
-        availableTickets.textContent = state.tickets;
-        buyTicketBtn.textContent = `Buy Ticket (${TICKET_PRICE} Coins)`;
+        ticketPriceDisplay.textContent = TICKET_PRICE;
+        document.querySelectorAll('.ticket').forEach(ticketEl => {
+            const ticketId = parseInt(ticketEl.dataset.ticketId, 10);
+            const ticketData = state.tickets.find(t => t.id === ticketId);
+            if (ticketData && ticketData.isSold) {
+                ticketEl.classList.add('sold');
+                // Check if the user owns this ticket
+                if (state.myTickets.some(myTicket => myTicket.id === ticketId)) {
+                    ticketEl.classList.add('owned');
+                }
+            }
+        });
 
         // Update tasks section
         completeTaskBtns.forEach((btn, index) => {
@@ -61,6 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.textContent = 'Completed';
             }
         });
+    }
+
+    // --- Ticket Generation ---
+    function renderTickets() {
+        ticketGrid.innerHTML = ''; // Clear existing tickets
+        for (let i = 1; i <= TOTAL_TICKETS; i++) {
+            const ticketEl = document.createElement('div');
+            ticketEl.classList.add('ticket');
+            ticketEl.dataset.ticketId = i;
+            ticketEl.textContent = formatTicketId(i);
+            ticketGrid.appendChild(ticketEl);
+        }
     }
 
     // --- Navigation ---
@@ -82,19 +110,25 @@ document.addEventListener('DOMContentLoaded', () => {
     tasksBtn.addEventListener('click', () => showSection(tasksSection, tasksBtn));
     ticketsBtn.addEventListener('click', () => showSection(ticketsSection, ticketsBtn));
 
-    buyTicketBtn.addEventListener('click', () => {
-        if (state.tickets > 0 && state.coins >= TICKET_PRICE) {
-            state.tickets--;
+    ticketGrid.addEventListener('click', (e) => {
+        if (e.target.classList.contains('ticket') && !e.target.classList.contains('sold')) {
+            const ticketId = parseInt(e.target.dataset.ticketId, 10);
+            const ticketData = state.tickets.find(t => t.id === ticketId);
+
+            if (state.coins < TICKET_PRICE) {
+                alert(`You do not have enough coins. You need ${TICKET_PRICE} coins.`);
+                return;
+            }
+
+            // Purchase logic
             state.coins -= TICKET_PRICE;
-            const newTicketId = 101 - state.tickets;
-            state.myTickets.push({ id: newTicketId });
+            ticketData.isSold = true;
+            state.myTickets.push({ id: ticketId });
+
             saveState();
             updateUI();
-            alert('Ticket purchased successfully!');
-        } else if (state.tickets <= 0) {
-            alert('Sorry, no more tickets available.');
-        } else {
-            alert(`You do not have enough coins. You need ${TICKET_PRICE} coins.`);
+
+            alert(`You successfully purchased Ticket #${formatTicketId(ticketId)}!`);
         }
     });
 
@@ -119,6 +153,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Load ---
     function init() {
         loadState();
+
+        // Initialize tickets if they don't exist in state
+        if (!state.tickets || state.tickets.length !== TOTAL_TICKETS) {
+            state.tickets = [];
+            for (let i = 1; i <= TOTAL_TICKETS; i++) {
+                state.tickets.push({ id: i, isSold: false });
+            }
+        }
+
+        renderTickets();
         updateUI();
         showSection(profileSection, profileBtn);
     }
