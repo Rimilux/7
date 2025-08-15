@@ -187,45 +187,98 @@ button.complete-task-btn:disabled {
 
 .ticket-grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem 1.5rem;
 }
 
 .ticket {
-    background-color: rgba(0,0,0,0.2);
+    background: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    min-height: 220px;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem;
     font-weight: 700;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.ticket:not(.sold):hover {
-    transform: scale(1.05);
-    background: var(--primary-accent);
+.ticket:after {
+    content: '';
+    position: absolute;
+    bottom: 60px;
+    left: -10%;
+    right: -10%;
+    height: 2px;
+    background-image: linear-gradient(to right, var(--glass-border) 50%, transparent 50%);
+    background-size: 10px 2px;
+}
+
+.ticket-number {
+    font-size: 2.5rem;
+    font-weight: 700;
     color: var(--text-primary);
-    border-color: var(--primary-accent-hover);
-    box-shadow: 0 0 20px var(--primary-accent);
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ticket-barcode {
+    height: 30px;
+    width: 100%;
+    background-image: repeating-linear-gradient(to right,
+        var(--text-secondary),
+        var(--text-secondary) 2px,
+        transparent 2px,
+        transparent 6px);
+    opacity: 0.6;
+}
+
+
+.ticket:not(.sold):hover {
+    transform: translateY(-10px);
+    border-color: var(--primary-accent);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px var(--primary-accent);
 }
 
 .ticket.sold {
-    background-color: rgba(0,0,0,0.4);
-    color: rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.2);
     cursor: not-allowed;
+}
+
+.ticket.sold .ticket-number {
+    color: rgba(255,255,255,0.3);
     text-decoration: line-through;
 }
 
+.ticket.sold .ticket-barcode {
+    opacity: 0.2;
+}
+
 .ticket.owned {
-    background: var(--primary-accent);
-    color: var(--text-primary);
+    background: linear-gradient(to top, var(--primary-accent), #c039a3a1);
     border-color: var(--primary-accent-hover);
+}
+
+.ticket.owned .ticket-number {
+    color: var(--text-primary);
     text-decoration: none;
+}
+
+.ticket.owned .ticket-barcode {
+    background-image: repeating-linear-gradient(to right,
+        var(--text-primary),
+        var(--text-primary) 2px,
+        transparent 2px,
+        transparent 6px);
+    opacity: 1;
 }
 
 /* --- Profile Styles --- */
@@ -256,6 +309,12 @@ button.complete-task-btn:disabled {
     }
 }
 
+@media (max-width: 900px) {
+    .ticket-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 600px) {
     nav {
         flex-direction: row;
@@ -277,5 +336,15 @@ button.complete-task-btn:disabled {
         gap: 1rem;
         align-items: center;
         text-align: center;
+    }
+    .ticket-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .ticket {
+        min-height: 180px;
+    }
+    .ticket-number {
+        font-size: 2rem;
     }
 }

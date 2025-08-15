@@ -86,7 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const ticketEl = document.createElement('div');
             ticketEl.classList.add('ticket');
             ticketEl.dataset.ticketId = i;
-            ticketEl.textContent = formatTicketId(i);
+
+            const numberEl = document.createElement('div');
+            numberEl.classList.add('ticket-number');
+            numberEl.textContent = formatTicketId(i);
+
+            const barcodeEl = document.createElement('div');
+            barcodeEl.classList.add('ticket-barcode');
+
+            ticketEl.appendChild(numberEl);
+            ticketEl.appendChild(barcodeEl);
             ticketGrid.appendChild(ticketEl);
         }
     }
